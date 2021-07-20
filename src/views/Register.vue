@@ -1,15 +1,18 @@
 <template>
   <div class="mt-8">
     <div class="container mx-auto px-8">
-      <form
+      <Form
         class="flex flex-col justify-start space-y-6"
-        @submit.prevent="onSubmit"
+        v-slot="{ errors }"
+        :validation-schema="schema"
+        @submit="onSubmit"
       >
         <div class="row">
           <label class="flex flex-col" for="fullname">
             <span class="font-semibold">Full Name</span>
-            <input
+            <Field
               id="fullname"
+              name="fullname"
               v-model.trim="formSubmit.fullname"
               type="text"
               placeholder="iMoney..."
@@ -21,8 +24,9 @@
         <div class="row">
           <label class="flex flex-col" for="email">
             <span class="font-semibold">Email address</span>
-            <input
+            <Field
               id="email"
+              name="email"
               v-model.trim="formSubmit.email"
               type="text"
               placeholder="Email..."
@@ -35,8 +39,9 @@
         <div class="row">
           <label class="flex flex-col" for="password">
             <span class="font-semibold">Password</span>
-            <input
+            <Field
               id="password"
+              name="password"
               v-model.trim="formSubmit.password"
               type="password"
               placeholder="Password..."
@@ -84,7 +89,7 @@
             <template v-else> Sign Up </template>
           </button>
         </div>
-      </form>
+      </Form>
       <div v-if="error" class="text-left text-red mt-4 text-sm">
         <span>{{ error }}</span>
       </div>
@@ -98,8 +103,6 @@
   </div>
 </template>
 <script>
-import { useForm, useField } from "vee-validate";
-import * as yup from "yup";
 import { reactive } from "@vue/reactivity";
 import { useSignUp } from "@/composables/useSignUp";
 import { useRouter } from "vue-router";
@@ -114,31 +117,21 @@ export default {
     const { signUp, error, pendding } = useSignUp();
     const router = useRouter();
 
-    const schema = yup.object({
-      email: yup.string().required().email(),
-      password: yup.string().required().min(6),
-      fullname: yup.string().required(),
-    });
+    const schema = {
+      fullname: "required",
+      email: "required|email",
+      password: "required|min:1|max:8",
+    };
 
-    // Create a form context with the validation schema
-    const { errors, handleSubmit } = useForm({
-      validationSchema: schema,
-      initialValues: formSubmit,
-    });
-
-    formSubmit.email = useField("email").value;
-    formSubmit.password = useField("password").value;
-    formSubmit.fullname = useField("fullname").value;
-
-    const onSubmit = handleSubmit(async () => {
-      const res = await signUp(formSubmit);
+    const onSubmit = async (formValues) => {
+      const res = await signUp(formValues);
       console.log(111, res);
       if (!error.value) {
         router.push("/profile");
       }
-    });
+    };
 
-    return { onSubmit, formSubmit, error, pendding, errors };
+    return { onSubmit, formSubmit, error, pendding, schema };
   },
 };
 </script>

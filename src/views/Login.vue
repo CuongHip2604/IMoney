@@ -1,17 +1,19 @@
 <template>
   <div class="mt-8">
     <div class="container mx-auto px-8">
-      <form
+      <Form
         class="flex flex-col justify-start space-y-6"
-        @submit.prevent="onSubmit"
+        v-slot="{ errors }"
+        :validation-schema="schema"
+        @submit="onSubmit"
       >
         <div class="row">
           <label class="flex flex-col" for="email">
             <span class="font-semibold">Email address</span>
-            <input
+            <Field
               id="email"
               name="email"
-              v-model.trim="emailField.value"
+              v-model.trim="formSubmit.email"
               type="text"
               placeholder="Email..."
               class="px-4 py-3 rounded-lg border-gray-200 mt-1 border"
@@ -23,10 +25,10 @@
         <div class="row">
           <label class="flex flex-col" for="password">
             <span class="font-semibold">Password</span>
-            <input
+            <Field
               name="password"
               id="password"
-              v-model.trim="passwordField.value"
+              v-model.trim="formSubmit.password"
               type="password"
               placeholder="Password..."
               class="px-4 py-3 rounded-lg border-gray-200 mt-1 border"
@@ -73,7 +75,7 @@
             <template v-else> Sign In </template>
           </button>
         </div>
-      </form>
+      </Form>
       <div v-if="error" class="text-left text-red mt-4 text-sm">
         <span>{{ error }}</span>
       </div>
@@ -87,41 +89,32 @@
   </div>
 </template>
 <script>
-import { useForm, useField } from "vee-validate";
-// import * as yup from "yup";
 import { reactive } from "@vue/reactivity";
 import { useSignIn } from "@/composables/useSignIn";
 import { useRouter } from "vue-router";
 export default {
   setup() {
-    // const formSubmit = reactive({
-    //   email: useField("email", "email"),
-    //   password: "",
-    // });
-    const { errors, handleSubmit } = useForm();
+    const formSubmit = reactive({
+      email: null,
+      password: null,
+    });
 
-    const emailField = reactive(useField("email", "required|email"));
-    const passwordField = reactive(useField("password", "password"));
+    const schema = {
+      email: "required|email",
+      password: "required|min:1|max:8",
+    };
 
     const { signIn, error, pendding } = useSignIn();
     const router = useRouter();
-
-    // const schema = yup.object({
-    //   email: yup.string().required().email(),
-    //   password: yup.string().required().min(6),
-    // });
-
-    // Create a form context with the validation schema
-
-    const onSubmit = handleSubmit(async (formValues) => {
+    const onSubmit = async (formValues) => {
       const res = await signIn(formValues);
       console.log("login", res);
       if (!error.value) {
         router.push("/profile");
       }
-    });
+    };
 
-    return { emailField, passwordField, onSubmit, error, pendding, errors };
+    return { onSubmit, error, pendding, formSubmit, schema };
   },
 };
 </script>

@@ -1,3 +1,4 @@
+import { Field, Form } from "vee-validate";
 import { defineAsyncComponent } from "vue";
 
 export function registerGlobalCompoonent(app) {
@@ -9,4 +10,7 @@ export function registerGlobalCompoonent(app) {
     "default-layout",
     defineAsyncComponent(() => import("@/layouts/Default"))
   );
+
+  app.component("Form", Form);
+  app.component("Field", Field);
 }
